@@ -85,10 +85,15 @@ func (s *Store) AddBill(groupID string, payer string, amount int64, mode Mode, p
 	if len(participants) == 0 {
 		return Bill{}, ErrEmptyParticipants
 	}
+	seen := make(map[string]struct{}, len(participants))
 	for _, p := range participants {
 		if _, ok := memberSet[p.Name]; !ok {
 			return Bill{}, ErrParticipantNotMem
 		}
+		if _, ok := seen[p.Name]; ok {
+			return Bill{}, ErrDuplicateParticipant
+		}
+		seen[p.Name] = struct{}{}
 	}
 
 	shares, err := ComputeShares(amount, mode, participants)
